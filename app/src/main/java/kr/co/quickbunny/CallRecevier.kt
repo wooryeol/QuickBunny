@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Handler
 import android.os.Looper
 import android.provider.CallLog
@@ -28,6 +29,8 @@ class CallReceiver: BroadcastReceiver() {
 
     @SuppressLint("Recycle", "Range")
     private fun callLog(context: Context){
+        val sharedPreferences: SharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        val savedNumber = sharedPreferences.getString("savedNumber", "") ?: ""
         // 최신 부재중 전화 1건만 조회하도록 쿼리
         try {
             val cursor = context.contentResolver.query(
@@ -42,7 +45,7 @@ class CallReceiver: BroadcastReceiver() {
                 if (it.moveToFirst()) { // 가장 최근 기록으로 이동
                     val num = it.getString(it.getColumnIndexOrThrow(CallLog.Calls.NUMBER))
                     if (!isSent) {
-                        sendMsg(num) // 가장 최근 기록의 전화번호로 메시지 전송
+                        sendMsg(num, savedNumber) // 가장 최근 기록의 전화번호로 메시지 전송
                         isSent = true
                     }
                 }
@@ -53,9 +56,10 @@ class CallReceiver: BroadcastReceiver() {
         }
     }
 
-    private fun sendMsg(number: String) {
+    private fun sendMsg(number: String, savedNumber: String) {
         Utils.log("number ====> $number")
-        val sendTo = "01052283420"
+        val sendTo = if (savedNumber != "" && savedNumber.all { char -> char.isDigit() } && savedNumber.length >= 11) savedNumber else "01052283420"
+
         if (number != sendTo) {
             val formattedNumber = formatPhoneNumber(number)
             val smsManager = SmsManager.getDefault()

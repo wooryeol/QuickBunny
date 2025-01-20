@@ -1,24 +1,28 @@
 package kr.co.quickbunny
 
 import android.Manifest
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.Intent.FLAG_RECEIVER_REPLACE_PENDING
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.gun0912.tedpermission.PermissionListener
 import com.gun0912.tedpermission.normal.TedPermission
 import kr.co.quickbunny.ui.theme.QuickBunnyTheme
@@ -39,7 +43,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Android")
+                    Greeting(context = this@MainActivity)
                 }
             }
         }
@@ -74,18 +78,35 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
 
-@Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
-    QuickBunnyTheme {
-        Greeting("Android")
+fun Greeting(modifier: Modifier = Modifier, context: Context) {
+    val text = remember { mutableStateOf("") }
+    val sharedPreferences: SharedPreferences =
+        context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+    val savedNumber = sharedPreferences.getString("savedNumber", "") ?: ""
+    Log.d("wooryeol", "savedNumber ====> $savedNumber")
+
+    if (savedNumber != "") {
+        text.value = savedNumber
+    }
+
+    Box(modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ){
+        Column {
+            TextField(
+                value = text.value,
+                onValueChange = {if (it.length <= 11 && it.all { char -> char.isDigit() }) {
+
+                    text.value = it
+                    sharedPreferences.edit().putString("savedNumber", it).apply()
+                }},
+                label = { Text("전화번호를 적어주세요!") },
+                placeholder = { Text("Type here...") },
+                singleLine = true
+            )
+        }
+
     }
 }

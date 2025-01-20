@@ -71,4 +71,6 @@ dependencies {
     implementation ("io.github.ParkSangGwon:tedpermission-normal:3.3.0")
     //gson
     implementation("com.google.code.gson:gson:2.10.1")
+
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.0") // ViewModel for Compose
 }
